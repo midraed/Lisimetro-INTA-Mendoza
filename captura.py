@@ -41,4 +41,4 @@ while True:
              BD.commit()
   else:
      pass
-  time.sleep(120)
+  time.sleep(30)
