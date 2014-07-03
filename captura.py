@@ -4,6 +4,7 @@ import MySQLdb
 import time
 import re
 
+## Iniciamos
 lisimetro = serial.Serial( '/dev/ttyS0', 9600, timeout=None)
 ## OJO QUE TENGO LA CLAVE!
 BD = MySQLdb.connect( host='localhost', db='Lisimetro', user='guillermo', passwd='***' )
@@ -11,12 +12,19 @@ curs = BD.cursor()
 s = ['A']
 ultimo = ['A']
 Peso_last = -999
-
-
-	
 now = time.strftime("%Y-%m-%d %H:%M:%S")
 print '>>>>>>>>>>>>>>>>>> ', str(now), " -- Recepcion de datos ONLINE"
 
+## Definimos algunas funciones:
+def SENSOR_post(n_sensor):
+ SENSOR = re.findall('SENSOR ' + str(n_sensor)  + ': (.*?)\|',s)
+ if len(SENSOR)>0 and SENSOR[0] != 'FRE X - ADC X ':
+  SENSOR = SENSOR[0].split(' ')
+ else:
+  SENSOR= '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
+ return SENSOR
+
+## Y ahora a escuchar:
 while True:  ## Aca iniciamos un bucle de 120 segundos:
   s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
   if  1==1: # s != ultimo:  ### nos fijamos si el valor cambio con respecto a la ultima recepcion
@@ -30,31 +38,11 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
             else:
              DIFF = LIS - Peso_last 
             print 'Correcto:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, 'last: ', Peso_last, 'diff: ', DIFF
-            SENSOR1 = re.findall('SENSOR 1: (.*?)\|',s)  # Esto se repite para cada sensor... deberia ser una funcion..!
-            if len(SENSOR1)>0 and SENSOR1[0] != 'FRE X - ADC X ':
-             SENSOR1 = SENSOR1[0].split(' ')
-            else:
-             SENSOR1 = '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
-            SENSOR2 = re.findall('SENSOR 2: (.*?)\|',s)
-            if len(SENSOR2)>0 and SENSOR2[0] != 'FRE X - ADC X ':
-             SENSOR2 = SENSOR2[0].split(' ')
-            else:
-             SENSOR2 = '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
-            SENSOR3 = re.findall('SENSOR 3: (.*?)\|',s)
-            if len(SENSOR3)>0 and SENSOR3[0] != 'FRE X - ADC X ':
-             SENSOR3 = SENSOR3[0].split(' ')
-            else:
-             SENSOR3 = '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
-            SENSOR4 = re.findall('SENSOR 4: (.*?)\|',s)
-            if len(SENSOR4)>0 and SENSOR4[0] != 'FRE X - ADC X ':
-             SENSOR4 = SENSOR4[0].split(' ')
-            else:
-             SENSOR4 = '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
-            SENSOR5 = re.findall('SENSOR 5: (.*?)\|',s)
-            if len(SENSOR5)>0 and SENSOR5[0] != 'FRE X - ADC X ':
-             SENSOR5 = SENSOR5[0].split(' ')
-            else:
-             SENSOR5 = '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
+            SENSOR1 = SENSOR_post(1)  # oh yeah  --- ahora nomas hace falta poder pasar un parametro de entrada con la cantidad de sensores.. y de paso la duracion del bucle :P
+            SENSOR2 = SENSOR_post(2)
+            SENSOR3 = SENSOR_post(3)
+            SENSOR4 = SENSOR_post(4)
+            SENSOR5 = SENSOR_post(5)
             BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
             ESTMET = re.findall('ESTMET (.*?)\]',s)
             curs.execute(
