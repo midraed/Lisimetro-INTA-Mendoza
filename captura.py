@@ -50,7 +50,7 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
             SENSOR4 = SENSOR_post(4)
             SENSOR5 = SENSOR_post(5)
             BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
-            if BATT <= 12.5  ## Reportamos baterías bajas!
+            if BATT <= 12.5  ## Reportamos baterias bajas!
              tg_report("[LIS] Low Batt")
             ESTMET = re.findall('ESTMET (.*?)\]',s)
             curs.execute(
