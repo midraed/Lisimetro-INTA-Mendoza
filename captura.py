@@ -13,7 +13,7 @@ s = ['A']
 ultimo = ['A']
 Peso_last = -999
 now = time.strftime("%Y-%m-%d %H:%M:%S")
-print '>>>>>>>>>>>>>>>>>> ', str(now), " -- Recepcion de datos ONLINE"
+
 
 ## Definimos algunas funciones:
 def SENSOR_post(n_sensor):
@@ -24,12 +24,17 @@ def SENSOR_post(n_sensor):
   SENSOR= '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
  return SENSOR
 
+def tg_report(mensaje):
+ subprocess.call(["./tg.sh", "Guillermo_Federico_Olmedo", str(mensaje)])
+
+print '>>>>>>>>>>>>>>>>>> ', str(now), " -- Recepcion de datos ONLINE"
+tg_report("[LIS] UP " + str(now))
 ## Y ahora a escuchar:
 while True:  ## Aca iniciamos un bucle de 120 segundos:
   s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
-  if  1==1: # s != ultimo:  ### nos fijamos si el valor cambio con respecto a la ultima recepcion
+  if  True: # s != ultimo:  ### nos fijamos si el valor cambio con respecto a la ultima recepcion
      ultimo = s     
-     if 1==1: # len(s) > 170 and len(s) < 205:  ## nos fijamos si parece una cadena valida ## Validador por longitud de cadena
+     if True: # len(s) > 170 and len(s) < 205:  ## nos fijamos si parece una cadena valida ## Validador por longitud de cadena
            try:
             LIS = float(re.findall('LIS (.*?)KG', s)[0])   ## desarmamos la cadena y la grabamos
             MOV = re.findall('KG(.*?) \|', s)
@@ -44,6 +49,8 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
             SENSOR4 = SENSOR_post(4)
             SENSOR5 = SENSOR_post(5)
             BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
+            if BATT <= 12.5  ## Reportamos baterías bajas!
+             tg_report("[LIS] Low Batt")
             ESTMET = re.findall('ESTMET (.*?)\]',s)
             curs.execute(
                  'insert into Ciclo20142015'
