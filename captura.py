@@ -7,7 +7,6 @@ import subprocess
 
 ## Iniciamos
 lisimetro = serial.Serial( '/dev/ttyS0', 9600, timeout=None)
-## OJO QUE TENGO LA CLAVE!
 BD = MySQLdb.connect( host='localhost', db='Lisimetro', user='guillermo', passwd='***' )
 curs = BD.cursor()
 s = ['A']
@@ -29,7 +28,8 @@ def tg_report(mensaje):
  subprocess.call(["./tg.sh", "Guillermo_Federico_Olmedo", str(mensaje)])
 
 print '>>>>>>>>>>>>>>>>>> ', str(now), " -- Recepcion de datos ONLINE"
-tg_report("[LIS] UP " + str(now))
+tg_report("[LISIMETRO] UP " + str(now))
+
 ## Y ahora a escuchar:
 while True:  ## Aca iniciamos un bucle de 120 segundos:
   s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
@@ -37,7 +37,7 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
      ultimo = s     
      if True: # len(s) > 170 and len(s) < 205:  ## nos fijamos si parece una cadena valida ## Validador por longitud de cadena
            try:
-            LIS = float(re.findall('LIS (.*?)KG', s)[0])   ## desarmamos la cadena y la grabamos
+            LIS = float(re.findall('LIS [-]?\d{1,3}\.?\d{0,3})KG', s)[0])   ## desarmamos la cadena y la grabamos
             MOV = re.findall('KG(.*?) \|', s)
             if Peso_last == -999:
              DIFF = -999
@@ -50,20 +50,20 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
             SENSOR4 = SENSOR_post(4)
             SENSOR5 = SENSOR_post(5)
             BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
-            if BATT <= 12.5  ## Reportamos baterias bajas!
-             tg_report("[LIS] Low Batt")
+            if BATT <= 12.5  ## Reportamos baterias bajas
+             tg_report("[LISIMETRO] Low Batt")
             ESTMET = re.findall('ESTMET (.*?)\]',s)
             curs.execute(
                  'insert into Ciclo20142015'
                  '(Fecha, Batt, Peso, Inestable, Peso_diff, E1_Temp_50, E1_Temp_100, E1_Temp_150, E1_Tens_50, E1_Tens_100, E1_Tens_150, E2_Temp_50, E2_Temp_100, E2_Tens_50, E2_Tens_100, ESTMET, Crudo)'
                  'VALUES'
                  '(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                 (time.strftime("%Y-%m-%d %H:%M:%S"), BATT, LIS, MOV[0]=='M', DIFF, SENSOR1[7], SENSOR2[7], SENSOR3[7], SENSOR1[2], SENSOR2[2], SENSOR3[2], SENSOR4[7], SENSOR5[7], SENSOR4[2], SENSOR5[2], ESTMET[0], s))
+                 (time.strftime("%Y-%m-%d %H:%M:%S"), BATT, LIS, MOV[0]=='M', DIFF, SENSOR1[6], SENSOR2[6], SENSOR3[6], SENSOR1[1], SENSOR2[1], SENSOR3[1], SENSOR4[6], SENSOR5[6], SENSOR4[1], SENSOR5[1], ESTMET[0], s))
             BD.commit()
             Peso_last = LIS
            except IndexError:
-            pass  #si la cadena tenia algun problemo
-     else:  ## Si no era una cadena valida la pasamos
+            pass  #si la cadena tenia algun problemo, aunque de longitud correcta
+     else:  ## Si no era una cadena valida por longitud la pasamos
       print '>>>> ERRONEA:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
   else: ## Si es la misma de antes
     print 'SIN CAMBIOS ', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, ' VS ', ultimo
