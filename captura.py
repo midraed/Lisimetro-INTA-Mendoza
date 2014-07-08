@@ -14,6 +14,7 @@ ultimo = ['A']
 Peso_last = -999
 now = time.strftime("%Y-%m-%d %H:%M:%S")
 
+lisimetro.write('<INT 0060>')
 
 ## Definimos algunas funciones:
 def SENSOR_post(n_sensor):
@@ -21,7 +22,7 @@ def SENSOR_post(n_sensor):
  if len(SENSOR)>0 and SENSOR[0] != 'FRE X - ADC X ':
   SENSOR = SENSOR[0].split(' ')
  else:
-  SENSOR= '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999', '-999'
+  SENSOR= ['-999'] * 9
  return SENSOR
 
 def tg_report(mensaje):
@@ -32,6 +33,8 @@ tg_report("[LISIMETRO] UP " + str(now))
 
 ## Y ahora a escuchar:
 while True:  ## Aca iniciamos un bucle de 120 segundos:
+  #lisimetro.write('<VALORES>') ## Aca sería para consulta a demanda
+  #time.sleep(1)
   s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
   if  True: # s != ultimo:  ### nos fijamos si el valor cambio con respecto a la ultima recepcion
      ultimo = s     
@@ -61,7 +64,15 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
                  (time.strftime("%Y-%m-%d %H:%M:%S"), BATT, LIS, MOV[0]=='M', DIFF, SENSOR1[6], SENSOR2[6], SENSOR3[6], SENSOR1[1], SENSOR2[1], SENSOR3[1], SENSOR4[6], SENSOR5[6], SENSOR4[1], SENSOR5[1], ESTMET[0], s))
             BD.commit()
             Peso_last = LIS
-           except IndexError:
+            try:
+               logfile = open("log_pythonauto.txt", "a")
+               try:
+                  logfile.write(str('Correcto:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, 'last: ', Peso_last, 'diff: ', DIFF))
+               finally:
+                  logfile.close()
+            except IOError:
+                  pass
+            except IndexError:
             pass  #si la cadena tenia algun problemo, aunque de longitud correcta
      else:  ## Si no era una cadena valida por longitud la pasamos
       print '>>>> ERRONEA:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s

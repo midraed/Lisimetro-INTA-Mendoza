@@ -8,7 +8,7 @@ LOGFILE="/home/guillermo/tg.log"
 cd ${tgpath}
 ${tgpath}/telegram -k ${tgpath}/tg-server.pub -W <<EOF
 msg $to $subject
-safe_quit
+quit
 EOF
 echo "$now Recipient=$to Message=$subject" >> ${LOGFILE}
 echo "Finished" >> ${LOGFILE}

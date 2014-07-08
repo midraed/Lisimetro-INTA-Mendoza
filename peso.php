@@ -1,7 +1,7 @@
 <?php
 include("phpgraphlib.php");
 $graph=new PHPGraphLib(1500,500);
-//GFO $link = mysql_connect('localhost', 'guillermo', 'midraed561234')
+//GFO $link = mysql_connect('localhost', 'guillermo', '****')
 //GFO  or die('Could not connect: ' . mysql_error());
 
 //GFO mysql_select_db('LISIMETRO') or die('Could not select database');
