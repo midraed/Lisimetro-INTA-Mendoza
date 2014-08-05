@@ -26,9 +26,10 @@ def SENSOR_post(n_sensor):
  return SENSOR
 
 def tg_report(mensaje):
- subprocess.call(["./tg.sh", "Guillermo_Federico_Olmedo", str(mensaje)])
+ subprocess.call(["/home/guillermo/Lisimetro-INTA-Mendoza/tg.sh", "Guillermo_Federico_Olmedo", str(mensaje)])
 
 print '>>>>>>>>>>>>>>>>>> ', str(now), " -- Recepcion de datos ONLINE"
+print 'running from github.com'
 tg_report("[LISIMETRO] UP " + str(now))
 
 ## Y ahora a escuchar:
@@ -40,8 +41,8 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
      ultimo = s     
      if True: # len(s) > 170 and len(s) < 205:  ## nos fijamos si parece una cadena valida ## Validador por longitud de cadena
            try:
-            LIS = float(re.findall('LIS [-]?\d{1,3}\.?\d{0,3})KG', s)[0])   ## desarmamos la cadena y la grabamos
-            MOV = re.findall('KG(.*?) \|', s)
+            LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})K', s)[0])   ## desarmamos la cadena y la grabamos
+            MOV = 'NA' # <- re.findall('KG(.*?) \|', s) # Lo sacamos porque llega hasta "K" y no "KG|M"
             if Peso_last == -999:
              DIFF = -999
             else:
@@ -54,7 +55,8 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
             SENSOR5 = SENSOR_post(5)
             BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
             if BATT <= 12.5  ## Reportamos baterias bajas
-             tg_report("[LISIMETRO] Low Batt")
+                tg_report("[LISIMETRO] Low Batt")
+                lisimetro.write('<INT 1500>')  # Ademas cambiamos el intervalo a 25 minutos,... para preservar la bateria que queda..
             ESTMET = re.findall('ESTMET (.*?)\]',s)
             curs.execute(
                  'insert into Ciclo20142015'
@@ -64,14 +66,14 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
                  (time.strftime("%Y-%m-%d %H:%M:%S"), BATT, LIS, MOV[0]=='M', DIFF, SENSOR1[6], SENSOR2[6], SENSOR3[6], SENSOR1[1], SENSOR2[1], SENSOR3[1], SENSOR4[6], SENSOR5[6], SENSOR4[1], SENSOR5[1], ESTMET[0], s))
             BD.commit()
             Peso_last = LIS
-            try:
-               logfile = open("log_pythonauto.txt", "a")
-               try:
-                  logfile.write(str('Correcto:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, 'last: ', Peso_last, 'diff: ', DIFF))
-               finally:
-                  logfile.close()
-            except IOError:
-                  pass
+            #try:
+             #  logfile = open("log_pythonauto.txt", "a")
+              # try:
+               #   logfile.write(str('Correcto:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, 'last: ', Peso_last, 'diff: ', DIFF))
+              # finally:
+               #   logfile.close()
+           # except IOError:
+            #      pass
             except IndexError:
             pass  #si la cadena tenia algun problemo, aunque de longitud correcta
      else:  ## Si no era una cadena valida por longitud la pasamos
