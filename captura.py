@@ -34,7 +34,7 @@ tg_report("[LISIMETRO] UP " + str(now))
 
 ## Y ahora a escuchar:
 while True:  ## Aca iniciamos un bucle de 120 segundos:
-  #lisimetro.write('<VALORES>') ## Aca sería para consulta a demanda
+  #lisimetro.write('<VALORES>') ## Aca seria para consulta a demanda
   #time.sleep(1)
   s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
   if  True: # s != ultimo:  ### nos fijamos si el valor cambio con respecto a la ultima recepcion
@@ -54,7 +54,7 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
             SENSOR4 = SENSOR_post(4)
             SENSOR5 = SENSOR_post(5)
             BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
-            if BATT <= 12.5  ## Reportamos baterias bajas
+            if BATT <= 12.5:  ## Reportamos baterias bajas
                 tg_report("[LISIMETRO] Low Batt")
                 lisimetro.write('<INT 1500>')  # Ademas cambiamos el intervalo a 25 minutos,... para preservar la bateria que queda..
             ESTMET = re.findall('ESTMET (.*?)\]',s)
@@ -74,11 +74,11 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
                #   logfile.close()
            # except IOError:
             #      pass
-            except IndexError:
+           except (IndexError, TypeError, NameError, SyntaxError):
+            print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    Something bad happened'
             pass  #si la cadena tenia algun problemo, aunque de longitud correcta
      else:  ## Si no era una cadena valida por longitud la pasamos
       print '>>>> ERRONEA:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
   else: ## Si es la misma de antes
     print 'SIN CAMBIOS ', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, ' VS ', ultimo
-     
   time.sleep(120)
