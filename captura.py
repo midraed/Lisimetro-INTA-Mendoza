@@ -42,7 +42,7 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
      if True: # len(s) > 170 and len(s) < 205:  ## nos fijamos si parece una cadena valida ## Validador por longitud de cadena
            try:
             LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})K', s)[0])   ## desarmamos la cadena y la grabamos
-            MOV = 'NA' # <- re.findall('KG(.*?) \|', s) # Lo sacamos porque llega hasta "K" y no "KG|M"
+            MOV = 'NA' re.findall('KG(.*?) \|', s) 
             if Peso_last == -999:
              DIFF = -999
             else:
@@ -75,7 +75,7 @@ while True:  ## Aca iniciamos un bucle de 120 segundos:
            # except IOError:
             #      pass
            except (IndexError, TypeError, NameError, SyntaxError):
-            print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    Something bad happened'
+            print '>>>>>>>>>>>>    Something bad happened', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
             pass  #si la cadena tenia algun problemo, aunque de longitud correcta
      else:  ## Si no era una cadena valida por longitud la pasamos
       print '>>>> ERRONEA:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
