@@ -1,0 +1,8 @@
+# Lisimetro
+00 05  * * * root echo "<VALV 1>" > /dev/ttyS0
+45 05  * * * root echo "<VALV 0>" > /dev/ttyS0
+00 06  * * * root echo "<RESET_CELDA>" > /dev/ttyS0
+00 09  * * * root echo "<INT 0300>" > /dev/ttyS0
+00 20  * * * root echo "<INT 0600>" > /dev/ttyS0
+00 13  * * * root mysql -u guillermo --password=***** Lisimetro  -e "SELECT * FROM Ciclo20142015" -B > \home\guillermo\lisimetro_cron_export.csv
+
