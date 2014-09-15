@@ -7,13 +7,16 @@ import subprocess
 
 ## Iniciamos
 lisimetro = serial.Serial( '/dev/ttyS0', 9600, timeout=None)
-BD = MySQLdb.connect( host='localhost', db='Lisimetro', user='guillermo', passwd='***' )
+f = open('clave')
+clave = f.read().strip('\n')
+f.close
+BD = MySQLdb.connect( host='localhost', db='Lisimetro', user='guillermo', passwd=clave )
 curs = BD.cursor()
 s = ['NA']
 Peso_last = -999
 now = time.strftime("%Y-%m-%d %H:%M:%S")
 
-lisimetro.write('<INT 0060>')
+lisimetro.write('<INT 0110>')
 
 ## Definimos algunas funciones:
 def SENSOR_post(n_sensor):
@@ -36,7 +39,7 @@ while True:
   try:
     s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
     ultimo = s     
-      try:
+    try:
         LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})\s?K', s)[0])   ## desarmamos la cadena y la grabamos
         MOV = re.findall('KG(.*?) \|', s) 
         if Peso_last == -999:
@@ -44,15 +47,20 @@ while True:
         else:
           DIFF = LIS - Peso_last 
         print 'Correcto:', str(time.strftime("%Y-%m-%d %H:%M:%S")), s, 'last: ', Peso_last, 'diff: ', DIFF
-        SENSOR1 = SENSOR_post(1)  # oh yeah  --- ahora nomas hace falta poder pasar un parametro de entrada con la cantidad de sensores.. y de paso la duracion del bucle :P
+        SENSOR1 = SENSOR_post(1)  # oh yeah  
         SENSOR2 = SENSOR_post(2)
         SENSOR3 = SENSOR_post(3)
         SENSOR4 = SENSOR_post(4)
         SENSOR5 = SENSOR_post(5)
         BATT = float(re.findall('VCC = (.*?)V', s)[0]) ## Capturamos el valor de la bateria
-        if BATT <= 12.5:  ## Reportamos baterias bajas
-          tg_report("[LISIMETRO] Low Batt")
-          lisimetro.write('<INT 1500>')  # Ademas cambiamos el intervalo a 25 minutos,... para preservar la bateria que queda..
+        if BATT <= 12.5 & LOWBATT == 0:  ## Si las baterias bajan a 12.5, y no lo habiamos reportado, lo hacemos
+          LOWBATT = 1
+	  tg_report("[LISIMETRO] Low Batt")
+	  lisimetro.write('<INT 1500>')  # Ademas cambiamos el intervalo a 25 minutos,... para preservar la bateria que queda..
+	if BATT > 12.6 & LOWBATT == 1: ## Cuando la bateria sube de 12.6, volvemos al estado normal
+          LOWBATT = 0
+          tg_report("[LISIMETRO Bateria Normal")
+          lisimetro.write('<INT 0110>')
         ESTMET = re.findall('ESTMET (.*?)\]',s)
         curs.execute(
                  'insert into Ciclo20142015'
@@ -63,9 +71,9 @@ while True:
                    SENSOR2[1], SENSOR3[1], SENSOR4[6], SENSOR5[6], SENSOR4[1], SENSOR5[1], ESTMET[0], s))
         BD.commit()
         Peso_last = LIS
-      except (IndexError, TypeError, NameError):
+    except (IndexError, TypeError, NameError):
          print '>>>>>>>>>>>>    ERRONEA', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
-         pass  #si la cadena tenia algun problema, aunque de longitud correcta
+         pass  
   except SerialError:
    pass
   time.sleep(120)
