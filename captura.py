@@ -15,6 +15,7 @@ curs = BD.cursor()
 s = ['NA']
 Peso_last = -999
 now = time.strftime("%Y-%m-%d %H:%M:%S")
+extra = 0
 
 lisimetro.write('<INT 0110>')
 
@@ -56,11 +57,13 @@ while True:
         if BATT <= 12.5 & LOWBATT == 0:  ## Si las baterias bajan a 12.5, y no lo habiamos reportado, lo hacemos
           LOWBATT = 1
 	  tg_report("[LISIMETRO] Low Batt")
-	  lisimetro.write('<INT 1500>')  # Ademas cambiamos el intervalo a 25 minutos,... para preservar la bateria que queda..
+	  lisimetro.write('<INT 1450>')  # Ademas cambiamos el intervalo a casi 25 minutos,... para preservar la bateria que queda..
+          extra = 1380 # Esto + el int normal de 120, da 25 minutos
 	if BATT > 12.6 & LOWBATT == 1: ## Cuando la bateria sube de 12.6, volvemos al estado normal
           LOWBATT = 0
           tg_report("[LISIMETRO Bateria Normal")
           lisimetro.write('<INT 0110>')
+          extra = 0
         ESTMET = re.findall('ESTMET (.*?)\]',s)
         curs.execute(
                  'insert into Ciclo20142015'
@@ -76,4 +79,4 @@ while True:
          pass  
   except SerialError:
    pass
-  time.sleep(120)
+  time.sleep(120+extra)
