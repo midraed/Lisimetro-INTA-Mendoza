@@ -56,8 +56,8 @@ while True:
     if BATT <= 12.5 and LOWBATT == 0:  ## Si las baterias bajan a 12.5, y no lo habiamos reportado, lo hacemos
       LOWBATT = 1
       tg_report("[LISIMETRO] Low Batt")
-      lisimetro.write('<INT 1450>')  # Ademas cambiamos el intervalo a casi 25 minutos,... para preservar la bateria que queda..
-      extra = 1380 # Esto + el int normal de 120, da 25 minutos
+      lisimetro.write('<INT 0530>')  # Ademas cambiamos el intervalo a casi 25 minutos,... para preservar la bateria que queda..
+      extra =  430 # Esto + el int normal de 120, da 25 minutos
     if BATT > 12.6 and LOWBATT == 1: ## Cuando la bateria sube de 12.6, volvemos al estado normal
       LOWBATT = 0
       tg_report("[LISIMETRO Bateria Normal")
