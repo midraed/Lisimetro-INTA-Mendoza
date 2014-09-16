@@ -37,11 +37,11 @@ print 'running from github.com'
 tg_report("[LISIMETRO] UP " + str(now))
 
 while True:  
-  s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
-  ultimo = s     
   try:
-    LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})\s?K', s)[0])   ## desarmamos la cadena y la grabamos
+    s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
+    ultimo = s     
     MOV = re.findall('KG(.*?) \|', s) 
+    LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})\s?K', s)[0])   ## desarmamos la cadena y la grabamos
     if Peso_last == -999:
       DIFF = -999
     else:
@@ -76,4 +76,8 @@ while True:
   except IndexError:
     print '>>>>>>>>>>>>   IndexError ', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
     pass  
+  except (SerialException, serial.serialutil.SerialException):
+    lisimetro.close
+    time.sleep(30)
+    lisimetro = serial.Serial( '/dev/ttyS0', 9600, timeout=None)
   time.sleep(120+extra)
