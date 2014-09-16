@@ -13,10 +13,10 @@ f.close
 BD = MySQLdb.connect( host='localhost', db='Lisimetro', user='guillermo', passwd=clave )
 curs = BD.cursor()
 s = ['NA']
-Peso_last = -999
+Peso_last = -999 # dummy para el arranque
 now = time.strftime("%Y-%m-%d %H:%M:%S")
-extra = 0
-LOWBATT = 0
+extra = 0 # tiempo extra en el loop principal
+LOWBATT = 0 # estado de baja bateria detectado (LOWBATT=1)
 
 lisimetro.write('<INT 0110>')
 
@@ -41,7 +41,7 @@ while True:
     s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
     ultimo = s     
     MOV = re.findall('KG(.*?) \|', s) 
-    LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})\s?K', s)[0])   ## desarmamos la cadena y la grabamos
+    LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})\s?K', s)[0])
     if Peso_last == -999:
       DIFF = -999
     else:
@@ -56,16 +56,15 @@ while True:
     if BATT <= 12.5 and LOWBATT == 0:  ## Si las baterias bajan a 12.5, y no lo habiamos reportado, lo hacemos
       LOWBATT = 1
       tg_report("[LISIMETRO] Low Batt")
-      lisimetro.write('<INT 0530>')  # Ademas cambiamos el intervalo a casi 25 minutos,... para preservar la bateria que queda..
-      extra =  430 # Esto + el int normal de 120, da 25 minutos
+      lisimetro.write('<INT 0550>')  # Ademas cambiamos el intervalo a casi 10 minutos,... para preservar la bateria que queda..
+      extra =  480 # Esto + el int normal de 10, da  minutos
     if BATT > 12.6 and LOWBATT == 1: ## Cuando la bateria sube de 12.6, volvemos al estado normal
       LOWBATT = 0
       tg_report("[LISIMETRO Bateria Normal")
       lisimetro.write('<INT 0110>')
       extra = 0
     ESTMET = re.findall('ESTMET (.*?)\]',s)
-    curs.execute(
-                 'insert into Ciclo20142015'
+    curs.execute('insert into Ciclo20142015'
                  '(Fecha, Batt, Peso, Inestable, Peso_diff, E1_Temp_50, E1_Temp_100, E1_Temp_150, E1_Tens_50, E1_Tens_100, E1_Tens_150, E2_Temp_50, E2_Temp_100, E2_Tens_50, E2_Tens_100, ESTMET, Crudo)'
                  'VALUES'
                  '(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
