@@ -1,3 +1,5 @@
+// Firmware de la placa principal del lisimetro
+// Autores: Juan Pablo Martí, Andrés Recabarren, Guillermo Olmedo
 /* INCLUDES */
 /* ================================================================== */
 
