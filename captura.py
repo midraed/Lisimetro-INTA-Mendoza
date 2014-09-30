@@ -72,11 +72,14 @@ while True:
                    SENSOR2[1], SENSOR3[1], SENSOR4[6], SENSOR5[6], SENSOR4[1], SENSOR5[1], ESTMET[0], s))
     BD.commit()
     Peso_last = LIS
-  except IndexError:
+  except (IndexError, ValueError):
     print '>>>>>>>>>>>>   IndexError ', str(time.strftime("%Y-%m-%d %H:%M:%S")), s
     pass  
-  except (SerialException, serial.serialutil.SerialException):
+  except (serial.serialutil.SerialException):
     lisimetro.close
     time.sleep(30)
     lisimetro = serial.Serial( '/dev/ttyS0', 9600, timeout=None)
+  except:
+    print "Unexpected error:", sys.exc_info()[0]
+    tg_report("Unexpected error:", sys.exc_info()[0])
   time.sleep(120+extra)
