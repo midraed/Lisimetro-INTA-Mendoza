@@ -37,6 +37,11 @@ def handle_message(message):
     temp = w.get_temperature('celsius')
     bot.reply_to(message, "Hacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed']) + " km/h \nLa humedad relativa es de " + str(hum) + " %.\nLa presión es de" + str(pres['press']) + " mb.")
 
+@bot.message_handler(regexp="clima")
+def send_welcome(message):
+    bot.reply_to(message, "Mendoza tiene un clima arido y continental, las temperaturas presentan una importante oscilacion anual y las precipitaciones son escasas.\nEl verano es calido y humedo, es la epoca más lluviosa y las temperaturas medias estan por encima de los 25 C.\nEl invierno es frio y seco, con temperaturas medias por debajo de los 8 C, heladas nocturnas ocasionales y escasas precipitaciones. La caida de nieve y aguanieve son poco comunes, suelen darse una vez por año, aunque con poca intensidad en las zonas más altas de la ciudad.\nQuizas quieras informacion sobre el estado del tiempo?")
+
+
 
 @bot.message_handler(regexp="pronostico")
 def handle_message(message):
