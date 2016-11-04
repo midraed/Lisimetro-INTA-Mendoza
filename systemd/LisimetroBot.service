@@ -1,0 +1,11 @@
+[Unit]
+Description=Bot de Telegram del Lisimetro
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/guillermo/Lisimetro-INTA-Mendoza/LisimetroBot.py 
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

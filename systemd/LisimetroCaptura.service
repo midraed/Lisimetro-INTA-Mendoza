@@ -1,0 +1,13 @@
+[Unit]
+Description=Receptor inalambrico del Lisimetro
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/guillermo/Lisimetro-INTA-Mendoza/captura.py     
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=default.target
+
+
