@@ -31,10 +31,10 @@ def handle_message(message):
     # TODO: Don't ask for a new observation if this one is from the last 10 minutes
     w = observation.get_weather()
     # Weather details
-    w.get_wind()                  # {'speed': 4.6, 'deg': 330}
-    w.get_humidity()              # 87
-    temp = w.get_temperature('celsius')  # {'temp_max': 10.5, 'temp': 9.7, 'temp_min': 9.0}
-    bot.reply_to(message, "Hacen " +  temp)
+    wind = w.get_wind()                  # {'speed': 4.6, 'deg': 330}
+    hum = w.get_humidity()              # 87
+    temp = w.get_temperature('celsius')
+    bot.reply_to(message, "Hacen " +  str(temp['temp']) + " grados \n El viento es de " + str(wind['speed']) + " km/h \n La humedad relativa es de " + str(hum) + " %.")
 
 @bot.message_handler(regexp="lloviendo")
 def handle_message(message):
