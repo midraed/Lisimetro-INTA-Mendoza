@@ -1,34 +1,33 @@
 import telebot
 import pyowm
+from osgeo import ogr, gdal
+import struct
+
 
 ########### Functions
 
-### From pthelma project
 def extract_point_from_raster(point, data_source, band_number=1):
     """Return floating-point value that corresponds to given point."""
-
-    # Convert point co-ordinates so that they are in same projection as raster
-    point_sr = point.GetSpatialReference()
-    raster_sr = osr.SpatialReference()
-    raster_sr.ImportFromWkt(data_source.GetProjection())
-    transform = osr.CoordinateTransformation(point_sr, raster_sr)
+  
+    source = osr.SpatialReference()
+    source.ImportFromEPSG(4326)
+    target = osr.SpatialReference()
+    target.ImportFromEPSG(32719)
+   
+    transform = osr.CoordinateTransformation(source, target)
     point.Transform(transform)
 
-    # Convert geographic co-ordinates to pixel co-ordinates
-    x, y = point.GetX(), point.GetY()
-    forward_transform = Affine.from_gdal(*data_source.GetGeoTransform())
-    reverse_transform = ~forward_transform
-    px, py = reverse_transform * (x, y)
-    px, py = int(px + 0.5), int(py + 0.5)
+    gt=data_source.GetGeoTransform()
+    rb=data_source.GetRasterBand(1)
+    geom = point.GetGeometryRef()
+    mx,my=geom.GetX(), geom.GetY()
+    px = int((mx - gt[0]) / gt[1]) #x pixel
+    py = int((my - gt[3]) / gt[5]) #y pixel
 
-    # Extract pixel value
-    band = data_source.GetRasterBand(band_number)
-    structval = band.ReadRaster(px, py, 1, 1, buf_type=gdal.GDT_Float32)
-    result = struct.unpack('f', structval)[0]
-    if result == band.GetNoDataValue():
-        result = float('nan')
-    return result
+    structval=rb.ReadRaster(px,py,1,1,buf_type=gdal.GDT_UInt16) #Assumes 16 bit int aka 'short'
+    intval = struct.unpack('h' , structval) #use the 'short' format code (2 bytes) not int (4 bytes)
 
+    return intval[0] 
 
 ####### BOT
 
@@ -79,7 +78,7 @@ def handle_message(message):
     hum = w.get_humidity()
     pres = w.get_pressure()
     temp = w.get_temperature('celsius')
-    bot.reply_to(message, "Hacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed']) + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de" + str(pres['press']) + " mb.")
+    bot.reply_to(message, "Hacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed']) + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de " + str(pres['press']) + " mb.")
 
 @bot.message_handler(regexp="clima")
 def send_welcome(message):
@@ -99,7 +98,7 @@ def handle_message(message):
     bot.reply_to(message, "No, hoy es un dia Peronista!")
 
 
-@bot.message_handler(regexp="temperatura")
+@bot.message_handler(regexp="calor")
 def handle_message(message):
     bot.reply_to(message, "Esta para una birra")
 
@@ -112,7 +111,13 @@ def handle_message(message):
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
-    bot.reply_to(message, "Lat: " + str(message.location.latitude) + "\nLongitude: " + str(message.location.longitude) )
+    point = ogr.Geometry(ogr.wkbPoint)
+    point.AddPoint(message.location.latitude, message.location.longitude)
+    #imagen = gdal.Open('/home/guillermo/test.tif')
+    #resultado = extract_point_from_raster(point, imagen)
+    bot.reply_to(message, "Lat: " + str(message.location.latitude) + 
+    "\nLongitude: " + str(message.location.longitude)) 
+    #"\nraster value:" +str(resultado))
 
 
 @bot.message_handler(func=lambda message: True)
