@@ -13,6 +13,8 @@ owm = pyowm.OWM(OWM, language='es')
 
 bot = telebot.TeleBot(TOKEN)
 
+########## COMMANDS
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.reply_to(message, "Estacion Lisimetrica\nINTA EEA Mendoza")
@@ -24,6 +26,17 @@ def send_welcome(message):
 @bot.message_handler(commands=['status'])
 def send_welcome(message):
     bot.reply_to(message, "Up and running!")
+
+@bot.message_handler(commands=['about'])
+def send_welcome(message):
+    bot.reply_to(message, "Este bot es de la estacion lisimetro EEA INTA Mendoza...")
+
+@bot.message_handler(commands=['last'])
+def send_welcome(message):
+    bot.reply_to(message, "EL ultimo dato recibido, la ultima imagen procesada ...")
+
+
+########## TEXT MESSAGES HANDLERS
 
 @bot.message_handler(regexp="tiempo")
 def handle_message(message):
@@ -39,7 +52,7 @@ def handle_message(message):
 
 @bot.message_handler(regexp="clima")
 def send_welcome(message):
-    bot.reply_to(message, "Mendoza tiene un clima arido y continental, las temperaturas presentan una importante oscilacion anual y las precipitaciones son escasas.\nEl verano es calido y humedo, es la epoca más lluviosa y las temperaturas medias estan por encima de los 25 C.\nEl invierno es frio y seco, con temperaturas medias por debajo de los 8 C, heladas nocturnas ocasionales y escasas precipitaciones. La caida de nieve y aguanieve son poco comunes, suelen darse una vez por año, aunque con poca intensidad en las zonas más altas de la ciudad.\nQuizas quieras informacion sobre el estado del tiempo?")
+    bot.reply_to(message, "Mendoza tiene un clima arido y continental, las temperaturas presentan una importante oscilacion anual y las precipitaciones son escasas.\nEl verano es calido y humedo, es la epoca más lluviosa y las temperaturas medias estan por encima de los 25 C.\nEl invierno es frio y seco, con temperaturas medias por debajo de los 8 C, heladas nocturnas ocasionales y escasas precipitaciones. La caida de nieve y aguanieve son poco comunes, suelen tirdarse una vez por año, aunque con poca intensidad en las zonas más altas de la ciudad.\nQuizas quieras informacion sobre el estado del tiempo?")
 
 
 
@@ -64,6 +77,11 @@ def handle_message(message):
 def handle_message(message):
     bot.reply_to(message, "Luke, I am your father")
 
+##############################################  LOCATION
+
+@bot.message_handler(content_types=['location'])
+def handle_location(message):
+    pass
 
 
 @bot.message_handler(func=lambda message: True)
