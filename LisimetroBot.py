@@ -68,6 +68,7 @@ def handle_message(message):
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-    bot.reply_to(message, "Lo siento, no se como interpretar esto. Prueba con /help")
+    if message.chat.type == “private”:
+       bot.reply_to(message, "Lo siento, no se como interpretar esto. Prueba con /help")
 
 bot.polling()
