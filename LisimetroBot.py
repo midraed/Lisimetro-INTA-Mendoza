@@ -1,4 +1,5 @@
 import telebot
+from telebot import types
 import pyowm
 from osgeo import ogr, gdal
 import struct
@@ -121,11 +122,18 @@ def handle_location(message):
        pres = w.get_pressure()
        temp = w.get_temperature('celsius')
        bot.reply_to(message, "Solo puedo dar datos de evapotranspiracion cerca de la estación, "
-       + "pero puedo buscar el estado del tiempo para esa localización: "
+       + "pero puedo buscar el estado del tiempo en [owm](http://openweathermap.org/) para esa localización: "
        + "\nHacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed'])
-       + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de " + str(pres['press']) + " mb.")
+       + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de " + str(pres['press']) + " mb.",
+       parse_mode = "Markdown")
     if abs(message.location.latitude - -33) <= 0.5 and \
     abs(message.location.longitude - -68.8) <= 0.5:
+       markup = types.ReplyKeyboardMarkup(row_width=1)
+       itembtn1 = types.KeyboardButton('Evapotranspiración Potencial')
+       itembtn2 = types.KeyboardButton('Evapotranspiración Real')
+       itembtn3 = types.KeyboardButton('Coeficiente de Cultivo')
+       markup.add(itembtn1, itembtn2, itembtn3)
+       bot.send_message(message.chat.id, "Que información quieres para esa localización?:", reply_markup=markup)
        point = ogr.Geometry(ogr.wkbPoint)
        point.AddPoint(message.location.latitude, message.location.longitude)
        #imagen = gdal.Open('/home/guillermo/test.tif')
@@ -133,6 +141,7 @@ def handle_location(message):
        bot.reply_to(message, "Lat: " + str(message.location.latitude) + 
        "\nLongitude: " + str(message.location.longitude)) 
        #"\nraster value:" +str(resultado))
+       
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
