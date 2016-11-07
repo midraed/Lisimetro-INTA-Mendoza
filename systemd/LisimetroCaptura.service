@@ -3,7 +3,7 @@ Description=Receptor inalambrico del Lisimetro
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python /home/guillermo/Lisimetro-INTA-Mendoza/captura.py     
+ExecStart=/usr/bin/python2 /home/guillermo/Lisimetro-INTA-Mendoza/captura.py     
 Restart=always
 RestartSec=60
 
