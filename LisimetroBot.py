@@ -111,14 +111,28 @@ def handle_message(message):
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
-    point = ogr.Geometry(ogr.wkbPoint)
-    point.AddPoint(message.location.latitude, message.location.longitude)
-    #imagen = gdal.Open('/home/guillermo/test.tif')
-    #resultado = extract_point_from_raster(point, imagen)
-    bot.reply_to(message, "Lat: " + str(message.location.latitude) + 
-    "\nLongitude: " + str(message.location.longitude)) 
-    #"\nraster value:" +str(resultado))
-
+    if abs(message.location.latitude - -33) > 0.5 or \
+    abs(message.location.longitude - -68.8) > 0.5:
+       observation = owm.weather_at_coords(message.location.latitude, message.location.longitude)  
+       w = observation.get_weather()
+       # Weather details
+       wind = w.get_wind()
+       hum = w.get_humidity()
+       pres = w.get_pressure()
+       temp = w.get_temperature('celsius')
+       bot.reply_to(message, "Solo puedo dar datos de evapotranspiracion cerca de la estación, "
+       + "pero puedo buscar el estado del tiempo para esa localización: "
+       + "\nHacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed'])
+       + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de " + str(pres['press']) + " mb.")
+    if abs(message.location.latitude - -33) <= 0.5 and \
+    abs(message.location.longitude - -68.8) <= 0.5:
+       point = ogr.Geometry(ogr.wkbPoint)
+       point.AddPoint(message.location.latitude, message.location.longitude)
+       #imagen = gdal.Open('/home/guillermo/test.tif')
+       #resultado = extract_point_from_raster(point, imagen)
+       bot.reply_to(message, "Lat: " + str(message.location.latitude) + 
+       "\nLongitude: " + str(message.location.longitude)) 
+       #"\nraster value:" +str(resultado))
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
