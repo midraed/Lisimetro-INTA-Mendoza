@@ -3,7 +3,9 @@ from telebot import types
 import pyowm
 from osgeo import ogr, gdal
 import struct
-
+import MySQLdb
+import re
+import subprocess
 
 ########### Functions
 
@@ -55,16 +57,36 @@ def send_welcome(message):
     bot.reply_to(message, "Este bot es experimental, por ahora solo interpreta palabras como tiempo, temperatura, lluvia.\nResponde comandos como /start, /help y /status")
 
 @bot.message_handler(commands=['status'])
-def send_welcome(message):
-    bot.reply_to(message, "Up and running!")
+def send_status(message):
+    f = open('/home/guillermo/Lisimetro-INTA-Mendoza/current/status')
+    status = f.readline().split(',')
+    f.close
+    try:
+      f = open('/home/guillermo/Lisimetro-INTA-Mendoza/clave')
+      clave = f.read().strip('\n')
+      f.close
+      db_status = 'ONLINE'
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='guillermo', passwd=clave )
+      cursor = db.cursor()        
+      cursor.execute("SELECT VERSION()")
+      results = cursor.fetchone()
+      # Check if anything at all is returned
+    except MySQLdb.Error:
+      db_status = 'OFFLINE'
+    output = subprocess.check_output(['systemctl', 'status'])
+    output = str(output)
+    comm_status = "ONLINE"
+    test_comm = re.search('LisimetroCaptura', output)
+    if test_comm == None:
+       comm_status = "OFFLINE"
+    bot.reply_to(message, "Batería: " + str(status[1]) + "V"
+    + "\nÚltimo dato recibido: " + str(status[0])
+    + "\nBase de datos: " + str(db_status)
+    + "\nComunicaciones: " + str(comm_status) )
 
 @bot.message_handler(commands=['about'])
-def send_welcome(message):
-    bot.reply_to(message, "Este bot es de la estacion lisimetro EEA INTA Mendoza...")
-
-@bot.message_handler(commands=['last'])
-def send_welcome(message):
-    bot.reply_to(message, "EL ultimo dato recibido, la ultima imagen procesada ...")
+def send_last(message):
+    bot.reply_to(message, "Estacion Lisimétrica")
 
 
 ########## TEXT MESSAGES HANDLERS
@@ -75,11 +97,16 @@ def handle_message(message):
     # TODO: Don't ask for a new observation if this one is from the last 10 minutes
     w = observation.get_weather()
     # Weather details
+    w_status = w.get_detailed_status() 
     wind = w.get_wind()
     hum = w.get_humidity()
     pres = w.get_pressure()
     temp = w.get_temperature('celsius')
-    bot.reply_to(message, "Hacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed']) + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de " + str(pres['press']) + " mb.")
+    bot.reply_to(message, str(w_status)
+    + "\nHacen " +  str(temp['temp']) 
+    + " grados \nEl viento es de " + str(wind['speed']) 
+    + " km/h \nLa humedad relativa es de " + str(hum) 
+    + "%.\nLa presión es de " + str(pres['press']) + " mb.")
 
 @bot.message_handler(regexp="clima")
 def send_welcome(message):
@@ -117,12 +144,14 @@ def handle_location(message):
        observation = owm.weather_at_coords(message.location.latitude, message.location.longitude)  
        w = observation.get_weather()
        # Weather details
+       w_status = w.get_detailed_status()
        wind = w.get_wind()
        hum = w.get_humidity()
        pres = w.get_pressure()
        temp = w.get_temperature('celsius')
        bot.reply_to(message, "Solo puedo dar datos de evapotranspiracion cerca de la estación, "
        + "pero puedo buscar el estado del tiempo en [owm](http://openweathermap.org/) para esa localización: "
+       + "\n" + str(w_status)
        + "\nHacen " +  str(temp['temp']) + " grados \nEl viento es de " + str(wind['speed'])
        + " km/h \nLa humedad relativa es de " + str(hum) + "%.\nLa presión es de " + str(pres['press']) + " mb.",
        parse_mode = "Markdown")
