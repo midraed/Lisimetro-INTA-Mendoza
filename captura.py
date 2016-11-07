@@ -33,7 +33,7 @@ def SENSOR_post(n_sensor):
 #def tg_report(mensaje):
 #  subprocess.call(["/home/guillermo/Lisimetro-INTA-Mendoza/tg.sh", "Guillermo_Federico_Olmedo", str(mensaje)])
 
-print '>>>>>>>>>>>>>>>>>> ', str(now), " -- Recepcion de datos ONLINE"
+print '>>>>>>>>>>>>>>>>>> ',  str(now),   " -- Recepcion de datos ONLINE"
 print 'running from github.com'
 #tg_report("[LISIMETRO] UP " + str(now))
 
@@ -42,7 +42,7 @@ while True:
     s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
     ultimo = s     
     MOV = re.findall('KG(.*?) \|', s) 
-    LIS = float(re.findall('LIS\s*([-]?\d{1,3}\.?\d{0,3})\s?K', s)[0])
+    LIS = float(re.findall('LIS\s*([-]?\d{1,5}\.?\d{0,3})\s?K', s)[0])
     if Peso_last == -999:
       DIFF = -999
     else:
@@ -65,6 +65,10 @@ while True:
       lisimetro.write('<INT 0110>')
       extra = 0
     ESTMET = re.findall('ESTMET (.*?)\]',s)
+######## STATUS REPORT for the BOT
+    f = open('current/status', 'w')
+    f.write(str(time.strftime("%Y-%m-%d %H:%M:%S"))+ "," + str(BATT) )
+######## WRITING TO DB
     curs.execute('insert into Ciclo20162017'
                  '(Fecha, Batt, Peso, Inestable, Peso_diff, E1_Temp_50, E1_Temp_100, E1_Temp_150, E1_Tens_50, E1_Tens_100, E1_Tens_150, E2_Temp_50, E2_Temp_100, E2_Tens_50, E2_Tens_100, ESTMET, Crudo)'
                  'VALUES'
