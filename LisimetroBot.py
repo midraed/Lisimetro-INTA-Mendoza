@@ -126,8 +126,14 @@ def send_status(message):
     + "\nComunicaciones: " + str(comm_status) )
 
 @bot.message_handler(commands=['about'])
-def send_last(message):
+def send_about(message):
     bot.reply_to(message, "Estacion Lisimétrica")
+
+@bot.message_handler(commands=['last'])
+def send_last(message):
+    output = subprocess.check_output(['systemctl', 'status', 'LisimetroCaptura'])
+    bot.reply_to(message, output)
+
 
 
 ########## TEXT MESSAGES HANDLERS
