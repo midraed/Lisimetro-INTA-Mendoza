@@ -6,6 +6,8 @@ import struct
 import MySQLdb
 import re
 import subprocess
+import time
+
 
 ########### Functions
 
@@ -117,6 +119,7 @@ def send_status(message):
     except MySQLdb.Error:
       db_status = 'OFFLINE'
     cursor.close()
+    db.close()
     output = subprocess.check_output(['systemctl', 'status'])
     output = str(output)
     comm_status = "ONLINE"
@@ -186,6 +189,24 @@ def handle_message(message):
 @bot.message_handler(regexp="padre|creador|autor")
 def handle_message(message):
     bot.reply_to(message, "Luke, I am your father")
+
+
+########################## ET
+
+
+@bot.message_handler(regexp="ET|evapotranspiracion|evapo|ETr|ETa")
+def handle_message(message):
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    start = time.strftime("%Y-%m-%d")
+    db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+    cursor = db.cursor()
+    query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
+    cursor.execute(query, (start, now))
+    results = cursor.fetchall()
+    bot.reply_to(message, str(results))
+    cursor.close()
+    db.close()
+
 
 ##############################################  LOCATION
 
