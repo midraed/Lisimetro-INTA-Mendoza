@@ -83,6 +83,11 @@ f = open('/home/guillermo/Lisimetro-INTA-Mendoza/OWM.key')
 OWM = f.read().strip('\n')
 f.close
 
+f = open('/home/guillermo/Lisimetro-INTA-Mendoza/clavebot')
+clavebot = f.read().strip('\n')
+f.close
+
+
 owm = pyowm.OWM(OWM, language='es')
 
 bot = telebot.TeleBot(TOKEN)
@@ -103,17 +108,15 @@ def send_status(message):
     status = f.readline().split(',')
     f.close
     try:
-      f = open('/home/guillermo/Lisimetro-INTA-Mendoza/clave')
-      clave = f.read().strip('\n')
-      f.close
       db_status = 'ONLINE'
-      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='guillermo', passwd=clave )
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
       cursor = db.cursor()        
       cursor.execute("SELECT VERSION()")
       results = cursor.fetchone()
       # Check if anything at all is returned
     except MySQLdb.Error:
       db_status = 'OFFLINE'
+    cursor.close()
     output = subprocess.check_output(['systemctl', 'status'])
     output = str(output)
     comm_status = "ONLINE"
