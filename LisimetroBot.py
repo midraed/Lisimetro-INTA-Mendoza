@@ -205,7 +205,7 @@ def handle_message(message):
     results = list(cursor.fetchall())
     results[:] = (value[0] for value in results)
     results[:] = (value for value in results if value > -30)
-    bot.reply_to(message, "ET real acumulada: " + str(abs(sum(results) / 6.25)) + "mm")
+    bot.reply_to(message, "ET real acumulada: " + str(round(abs(sum(results) / 6.25),2)) + "mm")
     cursor.close()
     db.close()
 
