@@ -7,6 +7,7 @@ import MySQLdb
 import re
 import subprocess
 import time
+import datetime
 
 
 ########### Functions
@@ -197,7 +198,14 @@ def handle_message(message):
 @bot.message_handler(regexp="ET|evapotranspiracion|evapo|ETr|ETa")
 def handle_message(message):
     now = time.strftime("%Y-%m-%d %H:%M:%S")
-    start = time.strftime("%Y-%m-%d")
+    start = time.strftime("Y-%m-%d")
+    if("desde" in message.text):
+        if("ayer" in message.text):
+            start = datetime.date.today() - datetime.timedelta(days=1)
+            start = start.strftime("%Y-%m-%d")
+        if("hace" in message.text):
+            ndias = int(re.findall('\d', message.text)[0])
+            start = datetime.date.today() - datetime.timedelta(days=ndias)
     db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
     cursor = db.cursor()
     query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
