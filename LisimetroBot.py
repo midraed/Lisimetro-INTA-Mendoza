@@ -202,8 +202,10 @@ def handle_message(message):
     cursor = db.cursor()
     query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
     cursor.execute(query, (start, now))
-    results = cursor.fetchall()
-    bot.reply_to(message, str(results))
+    results = list(cursor.fetchall())
+    results[:] = (value[0] for value in results)
+    results[:] = (value for value in results if value > -30)
+    bot.reply_to(message, "ET real acumulada: " + str(abs(sum(results) / 6.25)) + "mm")
     cursor.close()
     db.close()
 
