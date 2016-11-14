@@ -8,6 +8,11 @@ import re
 import subprocess
 import time
 import datetime
+import os
+import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 
 ########### Functions
@@ -191,14 +196,73 @@ def handle_message(message):
 def handle_message(message):
     bot.reply_to(message, "Luke, I am your father")
 
+######################### Temperatura
+
+@bot.message_handler(regexp="temperatura")
+def handle_message(message):
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    start = time.strftime("%Y-%m-%d")
+    if("desde" in message.text):
+        if("ayer" in message.text):
+            start = datetime.date.today() - datetime.timedelta(days=1)
+            start = start.strftime("%Y-%m-%d")
+        if("hace" in message.text):
+            ndias = int(re.findall('\d', message.text)[0])
+            start = datetime.date.today() - datetime.timedelta(days=ndias)
+    db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+    cursor = db.cursor()
+    query = ("SELECT E1_Temp_50 FROM Ciclo20162017 ORDER BY Fecha DESC LIMIT 1;")
+    cursor.execute(query)
+    results = list(cursor.fetchall())
+    bot.reply_to(message, "Temperatura: " + str(results) + "C ")
+    cursor.close()
+    db.close()
+
 
 ########################## ET
 
+@bot.message_handler(regexp="grafico")
+def handle_message(message):
+    if("evapo" in message.text):
+      ndias = 1
+      if("desde" in message.text):
+        if("ayer" in message.text):
+           ndias = 2
+        if("hace" in message.text):
+            ndias = int(re.findall('\d', message.text)[0])
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot)
+      cursor = db.cursor()
+      query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
+      datos = []
+      for i in range(0,ndias):
+        start = datetime.date.today() - datetime.timedelta(days=i)
+        stop = datetime.date.today() - datetime.timedelta(days=i)
+        stop = stop.strftime("%Y-%m-%d") + " 23:59"
+        cursor.execute(query, (start, stop))
+        results = list(cursor.fetchall())
+        results[:] = (value[0] for value in results)
+        results[:] = (value for value in results if value > -30)
+        datos.append(round(abs(sum(results) / 6.25),2))
+      ind = np.arange(ndias)
+      datos = tuple(datos)
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+      ax.bar(ind,datos, 0.35)
+      ax.set_ylim(0,max(datos)*1.1)
+      xTickMarks = ['Hace '+str(i)+ ' dia ' for i in range(0, ndias)]
+      ax.set_xticks(ind+0.35)
+      xtickNames = ax.set_xticklabels(xTickMarks)
+      plt.setp(xtickNames, rotation=45, fontsize=10)
+      os.remove("/home/guillermo/temp.png")
+      fig.savefig('/home/guillermo/temp.png')
+      photo = open('/home/guillermo/temp.png', 'rb')
+      bot.send_photo(message.chat.id, photo)
 
-@bot.message_handler(regexp="ET|evapotranspiracion|evapo|ETr|ETa")
+
+@bot.message_handler(regexp="ET|evapotranspiracion|evapo|ETr|ETa|Evapo")
 def handle_message(message):
     now = time.strftime("%Y-%m-%d %H:%M:%S")
-    start = time.strftime("Y-%m-%d")
+    start = time.strftime("%Y-%m-%d")
     if("desde" in message.text):
         if("ayer" in message.text):
             start = datetime.date.today() - datetime.timedelta(days=1)
@@ -213,9 +277,11 @@ def handle_message(message):
     results = list(cursor.fetchall())
     results[:] = (value[0] for value in results)
     results[:] = (value for value in results if value > -30)
-    bot.reply_to(message, "ET real acumulada: " + str(round(abs(sum(results) / 6.25),2)) + "mm")
+    bot.reply_to(message, "ET real acumulada: " + str(round(abs(sum(results) / 6.25),2)) + "mm. "
+    + "\nDesde :" + str(start) + "\nHasta: " + str(now))
     cursor.close()
     db.close()
+
 
 
 ##############################################  LOCATION
