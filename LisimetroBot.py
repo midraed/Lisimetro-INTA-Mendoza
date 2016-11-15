@@ -200,23 +200,46 @@ def handle_message(message):
 
 @bot.message_handler(regexp="temperatura")
 def handle_message(message):
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    start = time.strftime("%Y-%m-%d")
-    if("desde" in message.text):
-        if("ayer" in message.text):
-            start = datetime.date.today() - datetime.timedelta(days=1)
-            start = start.strftime("%Y-%m-%d")
-        if("hace" in message.text):
-            ndias = int(re.findall('\d', message.text)[0])
-            start = datetime.date.today() - datetime.timedelta(days=ndias)
-    db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
-    cursor = db.cursor()
-    query = ("SELECT E1_Temp_50 FROM Ciclo20162017 ORDER BY Fecha DESC LIMIT 1;")
-    cursor.execute(query)
-    results = list(cursor.fetchall())
-    bot.reply_to(message, "Temperatura: " + str(results) + "C ")
-    cursor.close()
-    db.close()
+    if("grafico" in message.text):
+      now = time.strftime("%Y-%m-%d %H:%M:%S")
+      start = time.strftime("%Y-%m-%d")
+      if("desde" in message.text):
+          if("ayer" in message.text):
+              start = datetime.date.today() - datetime.timedelta(days=1)
+              start = start.strftime("%Y-%m-%d")
+          if("hace" in message.text):
+              ndias = int(re.findall('\d', message.text)[0])
+              start = datetime.date.today() - datetime.timedelta(days=ndias)
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+      cursor = db.cursor()
+      query = ("SELECT Fecha, E1_Temp_50 FROM Ciclo20162017 WHERE (Fecha BETWEEN %s AND %s)"
+               +  " AND (E1_Temp_50 BETWEEN -30 AND 50)")
+      cursor.execute(query, (start, now))
+      results = list(cursor.fetchall())
+      dates = []
+      temps = []
+      dates[:] = (value[0] for value in results)
+      temps[:] = (value[1] for value in results)
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+      plt.plot(dates, temps)
+      ax.set_ylabel('Temperatura (°C)')
+      ax.set_title('Evolución de la Temperatura')
+      os.remove("/home/guillermo/temp84.png")
+      fig.savefig('/home/guillermo/temp84.png')
+      photo = open('/home/guillermo/temp84.png', 'rb')
+      bot.send_photo(message.chat.id, photo)
+      cursor.close()
+      db.close()
+    else:
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+      cursor = db.cursor()
+      query = ("SELECT E1_Temp_50 FROM Ciclo20162017 ORDER BY Fecha DESC LIMIT 1;")
+      cursor.execute(query)
+      results = cursor.fetchall()[0][0]
+      bot.reply_to(message, "Temperatura: " + str(results) + "C ")
+      cursor.close()
+      db.close()
 
 
 ########################## ET
@@ -251,10 +274,11 @@ def handle_message(message):
       ax.set_ylim(0,max(datos)*1.1)
       ax.set_ylabel('ETr acumulada (mm)')
       ax.set_title('Evolución de la ETr')
-      xTickMarks = [str(datetime.date.today() - datetime.timedelta(days=i)) for i in range(0, ndias)]
+      xTickMarks = [datetime.date.today() - datetime.timedelta(days=i) for i in range(0, ndias)]
+      xTickMarks = [xTickMarks[i].strftime("%d/%m/%y") for i in range(0, ndias)]
       ax.set_xticks(ind+0.175)
       xtickNames = ax.set_xticklabels(xTickMarks)
-      plt.setp(xtickNames, rotation=45, fontsize=10)
+      plt.setp(xtickNames, rotation=45, fontsize=8)
       os.remove("/home/guillermo/temp.png")
       fig.savefig('/home/guillermo/temp.png')
       photo = open('/home/guillermo/temp.png', 'rb')
