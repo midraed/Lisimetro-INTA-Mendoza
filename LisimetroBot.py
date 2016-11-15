@@ -196,6 +196,51 @@ def handle_message(message):
 def handle_message(message):
     bot.reply_to(message, "Luke, I am your father")
 
+#### Potencial suelo
+
+@bot.message_handler(regexp="potencial|humedad|suelo")
+def handle_message(message):
+    if("grafico" in message.text):
+      now = time.strftime("%Y-%m-%d %H:%M:%S")
+      start = time.strftime("%Y-%m-%d")
+      if("desde" in message.text):
+          if("ayer" in message.text):
+              start = datetime.date.today() - datetime.timedelta(days=1)
+              start = start.strftime("%Y-%m-%d")
+          if("hace" in message.text):
+              ndias = int(re.findall('\d', message.text)[0])
+              start = datetime.date.today() - datetime.timedelta(days=ndias)
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+      cursor = db.cursor()
+      query = ("SELECT Fecha, E1_Tens_50 FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
+      cursor.execute(query, (start, now))
+      results = list(cursor.fetchall())
+      dates = []
+      temps = []
+      dates[:] = (value[0] for value in results)
+      temps[:] = (value[1] for value in results)
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+      plt.plot(dates, temps)
+      ax.set_ylabel('Potencial suelo a 50 cm (bares)')
+      ax.set_title('Evolución de la humedad del suelo')
+      os.remove("/home/guillermo/potencialsue.png")
+      fig.savefig('/home/guillermo/potencialsue.png')
+      photo = open('/home/guillermo/potencialsue.png', 'rb')
+      bot.send_photo(message.chat.id, photo)
+      cursor.close()
+      db.close()
+    else:
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+      cursor = db.cursor()
+      query = ("SELECT E1_Tens_50 FROM Ciclo20162017 ORDER BY Fecha DESC LIMIT 1;")
+      cursor.execute(query)
+      results = cursor.fetchall()[0][0]
+      bot.reply_to(message, "Potencial suelo a 50cm: " + str(results) + "bares ")
+      cursor.close()
+
+
+
 ######################### Temperatura
 
 @bot.message_handler(regexp="temperatura")
