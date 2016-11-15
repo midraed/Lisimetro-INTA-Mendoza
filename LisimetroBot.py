@@ -229,7 +229,7 @@ def handle_message(message):
         if("ayer" in message.text):
            ndias = 2
         if("hace" in message.text):
-            ndias = int(re.findall('\d', message.text)[0])
+            ndias = int(re.findall('\d+', message.text)[0])
       db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot)
       cursor = db.cursor()
       query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
@@ -270,7 +270,7 @@ def handle_message(message):
             start = datetime.date.today() - datetime.timedelta(days=1)
             start = start.strftime("%Y-%m-%d")
         if("hace" in message.text):
-            ndias = int(re.findall('\d', message.text)[0])
+            ndias = int(re.findall('\d+', message.text)[0])
             start = datetime.date.today() - datetime.timedelta(days=ndias)
     db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
     cursor = db.cursor()
