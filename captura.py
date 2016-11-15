@@ -1,9 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 import serial
 import MySQLdb
 import time
 import re
 import subprocess
+import sys
 
 ## Iniciamos
 lisimetro = serial.Serial( '/dev/ttyS0', 9600, timeout=None)
