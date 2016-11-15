@@ -212,15 +212,19 @@ def handle_message(message):
               start = datetime.date.today() - datetime.timedelta(days=ndias)
       db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
       cursor = db.cursor()
-      query = ("SELECT Fecha, E1_Tens_50 FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
+      query = ("SELECT Fecha, E1_Tens_50 FROM Ciclo20162017 WHERE (Fecha BETWEEN %s AND %s)"
+               + " AND (E1_Tens_50 BETWEEN 0 and 200)")
       cursor.execute(query, (start, now))
       results = list(cursor.fetchall())
       dates = []
       temps = []
       dates[:] = (value[0] for value in results)
       temps[:] = (value[1] for value in results)
+      plt.rcParams['axes.color_cycle']='brown'
+      plt.rcParams['lines.linewidth'] = 1.5
       fig = plt.figure()
       ax = fig.add_subplot(111)
+      ax.set_ylim(-5,205)
       plt.plot(dates, temps)
       ax.set_ylabel('Potencial suelo a 50 cm (bares)')
       ax.set_title('Evolución de la humedad del suelo')
@@ -265,6 +269,8 @@ def handle_message(message):
       temps = []
       dates[:] = (value[0] for value in results)
       temps[:] = (value[1] for value in results)
+      plt.rcParams['axes.color_cycle']='brown'
+      plt.rcParams['lines.linewidth'] = 1.5
       fig = plt.figure()
       ax = fig.add_subplot(111)
       plt.plot(dates, temps)
