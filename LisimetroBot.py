@@ -118,7 +118,7 @@ def send_status(message):
     try:
       db_status = 'ONLINE'
       db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
-      cursor = db.cursor()        
+      cursor = db.cursor()
       cursor.execute("SELECT VERSION()")
       results = cursor.fetchone()
       # Check if anything at all is returned
@@ -161,7 +161,7 @@ def handle_message(message):
     hum = w.get_humidity()
     pres = w.get_pressure()
     temp = w.get_temperature('celsius')
-    weatherID = w.get_weather_code()   
+    weatherID = w.get_weather_code()
     emoji = getEmoji(weatherID)
     bot.reply_to(message, str(w_status) + " " + emoji + emoji
     + "\nHacen " +  str(temp['temp']) 
@@ -195,6 +195,46 @@ def handle_message(message):
 @bot.message_handler(regexp="padre|creador|autor")
 def handle_message(message):
     bot.reply_to(message, "Luke, I am your father")
+
+###### Bateria
+
+@bot.message_handler(regexp="bateria|voltaje")
+def handle_message(message):
+      now = time.strftime("%Y-%m-%d %H:%M:%S")
+      start = time.strftime("%Y-%m-%d")
+      if("desde" in message.text):
+          if("ayer" in message.text):
+              start = datetime.date.today() - datetime.timedelta(days=1)
+              start = start.strftime("%Y-%m-%d")
+          if("hace" in message.text):
+              ndias = int(re.findall('\d', message.text)[0])
+              start = datetime.date.today() - datetime.timedelta(days=ndias)
+      db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot )
+      cursor = db.cursor()
+      query = ("SELECT Fecha, Batt FROM Ciclo20162017 WHERE (Fecha BETWEEN %s AND %s)"
+               + " AND (Batt BETWEEN 0 and 20)")
+      cursor.execute(query, (start, now))
+      results = list(cursor.fetchall())
+      dates = []
+      temps = []
+      dates[:] = (value[0] for value in results)
+      temps[:] = (value[1] for value in results)
+      plt.rcParams['axes.color_cycle']='green'
+      plt.rcParams['lines.linewidth'] = 1.5
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+      plt.plot(dates, temps)
+      ax.set_ylabel('Baterías lisímetro (V)')
+      ax.set_title('Estado de las baterías')
+      os.remove("/home/guillermo/bateria.png")
+      fig.savefig('/home/guillermo/bateria.png')
+      photo = open('/home/guillermo/bateria.png', 'rb')
+      bot.send_photo(message.chat.id, photo)
+      cursor.close()
+      db.close()
+
+
+
 
 #### Potencial suelo
 
