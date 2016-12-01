@@ -346,7 +346,8 @@ def handle_message(message):
             ndias = int(re.findall('\d+', message.text)[0])
       db = MySQLdb.connect( host='localhost', db='LISIMETRO', user='bot', passwd=clavebot)
       cursor = db.cursor()
-      query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE Fecha BETWEEN %s AND %s")
+      query = ("SELECT Peso_diff FROM Ciclo20162017 WHERE (Fecha BETWEEN %s AND %s)"
+              + " AND (Peso_diff BETWEEN -30 AND +30)") 
       datos = []
       for i in range(0,ndias):
         start = datetime.date.today() - datetime.timedelta(days=i)
