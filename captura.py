@@ -38,12 +38,21 @@ print '>>>>>>>>>>>>>>>>>> ',  str(now),   " -- Recepcion de datos ONLINE"
 print 'running from github.com'
 #tg_report("[LISIMETRO] UP " + str(now))
 
+lisimetro_errors = 0 # lisimetro error counter
+
 while True:  
   try:
     s = lisimetro.readline().strip("\r\n")   ## Leemos el puerto serie
     ultimo = s     
     MOV = re.findall('KG(.*?) \|', s) 
     LIS = float(re.findall('LIS\s*([-]?\d{1,5}\.?\d{0,3})\s?K', s)[0])
+    if LIS < -9999 and lisimetro_errors == 5:
+      lisimetro_errors = 0  # reset counter
+      lisimetro.write('<RESET_CELDA>')
+      time.sleep(30)
+      lisimetro.write('<RESET_CELDA>')
+    if LIS < -9999 and lisimetro_errors < 5:
+      lisimetro_errors  = lisimetro_errors + 1  # increase counter
     if Peso_last == -999:
       DIFF = -999
     else:
